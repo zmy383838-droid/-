@@ -1,0 +1,34 @@
+# 忽略不需要上传的文件
+
+# 临时文件
+*.tmp
+*.log
+*.bak
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 文档文件（不需要上传）
+*.docx
+*.txt
+*.xls
+*.xlsx
+新建*.docx
+新建*.txt
+符号.xls
+
+# 小程序相关（如果只需要网页版，可以忽略小程序文件夹）
+# 小程序/
+
+# IDE配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 音频文件（如果太大，建议使用Git LFS或不上传）
+# audio/*.mp3
+
