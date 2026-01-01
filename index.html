@@ -2,6 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>甲影 · 赛博甲骨占卜</title>
 <style>
   :root { color-scheme: dark; }
@@ -19,11 +20,20 @@
     min-height:100vh;
   }
   h1 { letter-spacing:8px; color:#e4d4b8; text-shadow:0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(200,180,140,0.3); font-size:30px; }
+  @media (max-width: 480px) {
+    h1 { font-size:24px; letter-spacing:4px; }
+    body { padding:40px 12px 50px; }
+    #scene { padding:24px 16px 32px; }
+    .shell { width:320px; height:380px; }
+    button { padding:10px 18px; font-size:14px; }
+    #text-panel { font-size:14px; }
+  }
   button { margin:10px; padding:12px 22px; font-size:16px; border:1px solid #6a5a4a;
            background:rgba(60,50,40,0.6); color:#d4c4a8; cursor:pointer; border-radius:20px; 
            box-shadow:0 2px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1); 
-           transition:all 0.3s ease; }
-  button:hover { background:rgba(70,60,50,0.8); border-color:#7a6a5a; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+           transition:all 0.3s ease; -webkit-tap-highlight-color:transparent; 
+           touch-action:manipulation; }
+  button:hover, button:active { background:rgba(70,60,50,0.8); border-color:#7a6a5a; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
   #scene {
     position:relative;
     max-width:960px;
@@ -34,7 +44,9 @@
     position:relative;
     margin:0 auto;
     width:380px;
+    max-width:90vw;
     height:460px;
+    max-height:70vh;
     background-image: url('images/shell-bg.png'); /* 使用真实龟甲图片 */
     background-size: cover;
     background-position: center;
@@ -46,6 +58,7 @@
       inset 0 0 40px rgba(0,0,0,0.2);
     overflow:hidden;
     /* 让龟甲图片更淡、更融入暗色背景 */
+    -webkit-filter:brightness(0.85) contrast(0.95) sepia(0.2);
     filter:brightness(0.85) contrast(0.95) sepia(0.2);
     border:1px solid rgba(100,80,60,0.3);
   }
@@ -101,7 +114,10 @@
     height:auto;
     object-fit:contain;
     /* 让符号更清晰，与暗色背景形成对比 */
+    -webkit-filter:brightness(1.2) contrast(1.4) drop-shadow(0 0 8px rgba(200,180,140,0.6));
     filter:brightness(1.2) contrast(1.4) drop-shadow(0 0 8px rgba(200,180,140,0.6));
+    -webkit-animation:glyphCarve 3s forwards ease-out,
+              glyphFadeIn 2.5s ease-in-out 0.5s infinite alternate;
     animation:glyphCarve 3s forwards ease-out,
               glyphFadeIn 2.5s ease-in-out 0.5s infinite alternate;
     position:relative;
@@ -127,7 +143,6 @@
     transform:translate(-50%, 14px);
     font-size:13px;
     letter-spacing:2px;
-    text-transform:uppercase;
     color:#7fffe2;
     opacity:0;
     animation:labelFade 1.4s forwards ease-out;
@@ -180,25 +195,63 @@
     }
   }
   /* 符号刻痕浮现效果（做旧风格） */
-  @keyframes glyphCarve {
+  @-webkit-keyframes glyphCarve {
     0% {
       opacity:0;
+      -webkit-transform:scale(0.4) translateY(20px);
       transform:scale(0.4) translateY(20px);
+      -webkit-filter:blur(8px) brightness(0.4) contrast(0.6);
       filter:blur(8px) brightness(0.4) contrast(0.6);
     }
     30% {
       opacity:0.4;
+      -webkit-transform:scale(0.7) translateY(10px);
       transform:scale(0.7) translateY(10px);
+      -webkit-filter:blur(5px) brightness(0.6) contrast(0.8);
       filter:blur(5px) brightness(0.6) contrast(0.8);
     }
     60% {
       opacity:0.7;
+      -webkit-transform:scale(0.9) translateY(3px);
       transform:scale(0.9) translateY(3px);
+      -webkit-filter:blur(2px) brightness(0.75) contrast(1);
       filter:blur(2px) brightness(0.75) contrast(1);
     }
     100% {
       opacity:1;
+      -webkit-transform:scale(1) translateY(0);
       transform:scale(1) translateY(0);
+      -webkit-filter:blur(0px) brightness(0.75) contrast(1.2);
+      filter:blur(0px) brightness(0.75) contrast(1.2);
+    }
+  }
+  @keyframes glyphCarve {
+    0% {
+      opacity:0;
+      -webkit-transform:scale(0.4) translateY(20px);
+      transform:scale(0.4) translateY(20px);
+      -webkit-filter:blur(8px) brightness(0.4) contrast(0.6);
+      filter:blur(8px) brightness(0.4) contrast(0.6);
+    }
+    30% {
+      opacity:0.4;
+      -webkit-transform:scale(0.7) translateY(10px);
+      transform:scale(0.7) translateY(10px);
+      -webkit-filter:blur(5px) brightness(0.6) contrast(0.8);
+      filter:blur(5px) brightness(0.6) contrast(0.8);
+    }
+    60% {
+      opacity:0.7;
+      -webkit-transform:scale(0.9) translateY(3px);
+      transform:scale(0.9) translateY(3px);
+      -webkit-filter:blur(2px) brightness(0.75) contrast(1);
+      filter:blur(2px) brightness(0.75) contrast(1);
+    }
+    100% {
+      opacity:1;
+      -webkit-transform:scale(1) translateY(0);
+      transform:scale(1) translateY(0);
+      -webkit-filter:blur(0px) brightness(0.75) contrast(1.2);
       filter:blur(0px) brightness(0.75) contrast(1.2);
     }
   }
@@ -458,8 +511,7 @@
       <input id="question-input"
              type="text"
              placeholder="在此输入你此刻真正想问的一句问话……"
-             style="width:60%;max-width:520px;padding:8px 10px;border-radius:999px;border:1px solid #6a5a4a;background:rgba(40,35,30,0.6);color:#d4c4a8;font-size:14px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.3) inset;"
-             oninput="validateInput(this)">
+             style="width:60%;max-width:520px;padding:8px 10px;border-radius:999px;border:1px solid #6a5a4a;background:rgba(40,35,30,0.6);color:#d4c4a8;font-size:14px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.3) inset;">
       <button id="question-lock-btn" onclick="lockQuestion()" style="margin-left:8px;">立问</button>
     </div>
     <div id="daily-info" style="margin-top:10px;font-size:13px;opacity:0.8;color:#b4a494;"></div>
@@ -725,6 +777,13 @@ function lockQuestion() {
     input.focus();
     return;
   }
+  
+  // 验证输入必须包含有意义的中文
+  if (!isValidChineseQuestion(value)) {
+    alert("请输入一个有意义的中文问题，至少包含中文字符。");
+    input.focus();
+    return;
+  }
   currentQuestion = value;
   input.readOnly = true;
   input.style.opacity = "0.9";
@@ -797,16 +856,25 @@ function setupEnterStage() {
   window.addEventListener('touchend', cancelHold);
 }
 
-// 输入验证：只允许中文
-function validateInput(input) {
-  // 移除所有非中文字符（包括中文标点）
-  const value = input.value;
-  // 只允许：中文字符、中文标点、空格
-  const validPattern = /[^\u4e00-\u9fa5\s，。！？、；：""''（）【】《》]/g;
-  const cleaned = value.replace(validPattern, '');
-  if (cleaned !== value) {
-    input.value = cleaned;
+// 输入验证函数已移除，允许用户自由输入
+
+// 验证输入是否包含有意义的中文
+function isValidChineseQuestion(text) {
+  if (!text || !text.trim()) return false;
+  
+  // 检查是否包含至少一个中文字符
+  const chinesePattern = /[\u4e00-\u9fa5]/;
+  if (!chinesePattern.test(text)) {
+    return false;
   }
+  
+  // 去除所有空格、标点和数字后，检查是否还有中文字符
+  const cleanText = text.replace(/[\s，。！？、；：""''（）【】《》\d]/g, '');
+  if (cleanText.length === 0 || !chinesePattern.test(cleanText)) {
+    return false;
+  }
+  
+  return true;
 }
 
 function showPage(name) {
@@ -855,18 +923,12 @@ function renderGlyphs(drawSymbols) {
       g.dataset.oracle = s.name;
     }
 
-    const label = document.createElement('div');
-    label.className = 'glyph-label';
-    // 龟甲内部只浮现甲骨文，这里不再写简体字，只做轻微的占位发光
-    label.textContent = "";
+    // 不再显示龟甲下方的简体字标签
 
     const delay = index * 0.35;
     g.style.animationDelay = `${delay}s`;
     g.style.setProperty('--carve-delay', `${delay}s`);
 
-    label.style.animationDelay = `${delay + 0.7}s`;
-
-    g.appendChild(label);
     row.appendChild(g);
   });
 
@@ -886,32 +948,13 @@ function revealSequence(drawSymbols) {
   drawSymbols.forEach((s, index) => {
     const startAt = index * (HINT_DELAY_MS + BETWEEN_SYMBOL_MS);
 
-    // 先只显现甲骨文字形
+    // 只显现甲骨文字形，不显示简体字在龟甲上
     schedule(() => {
       renderGlyphs([s]);
-      textPanel.innerText = ""; // 刚出现时不写任何解释
-    }, startAt);
-
-    // 若干秒后再给出极简提示词（不包含固定句）
-    schedule(() => {
-      const hint = getHint(s);
+      // 在下方文字面板显示类别和简体字，不显示释义
       const categoryLabel = s.category ? `【${s.category}】` : "";
-      const hintLine = hint ? `${categoryLabel}${hint}` : categoryLabel;
-      
-      // 只在第一个符号显示提示时，短暂显示一次"你看到的"这句话
-      if (!bottomLineShown && index === 0) {
-        textPanel.innerText = [hintLine, bottomLine].filter(Boolean).join("\n");
-        bottomLineShown = true;
-        // 2秒后移除这句话
-        schedule(() => {
-          if (textPanel.innerText.includes(bottomLine)) {
-            textPanel.innerText = hintLine;
-          }
-        }, 2000);
-      } else {
-        textPanel.innerText = hintLine;
-      }
-    }, startAt + HINT_DELAY_MS);
+      textPanel.innerText = categoryLabel + s.name;
+    }, startAt);
   });
 
   // 全部显现完后，进入"验辞阶段"：展示每个字的意思 + 简要解读
