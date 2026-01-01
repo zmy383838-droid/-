@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>甲影 · 赛博甲骨占卜</title>
+<style>
+  :root { color-scheme: dark; }
+  body { 
+    margin:0; 
+    padding:56px 16px 64px; 
+    font-family:"LXGW WenKai","Microsoft YaHei",monospace;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(40,30,25,0.4), transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(35,25,20,0.3), transparent 50%),
+      #1a1612;
+    background-attachment: fixed;
+    color:#d4c4a8; 
+    text-align:center;
+    min-height:100vh;
+  }
+  h1 { letter-spacing:8px; color:#e4d4b8; text-shadow:0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(200,180,140,0.3); font-size:30px; }
+  button { margin:10px; padding:12px 22px; font-size:16px; border:1px solid #6a5a4a;
+           background:rgba(60,50,40,0.6); color:#d4c4a8; cursor:pointer; border-radius:20px; 
+           box-shadow:0 2px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1); 
+           transition:all 0.3s ease; }
+  button:hover { background:rgba(70,60,50,0.8); border-color:#7a6a5a; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+  #scene {
+    position:relative;
+    max-width:960px;
+    margin:48px auto 0;
+    padding:36px 28px 46px;
+  }
+  .shell {
+    position:relative;
+    margin:0 auto;
+    width:380px;
+    height:460px;
+    background-image: url('images/shell-bg.png'); /* 使用真实龟甲图片 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius:60% 60% 70% 70%;
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.6),
+      0 0 60px rgba(100,80,60,0.2) inset,
+      inset 0 0 40px rgba(0,0,0,0.2);
+    overflow:hidden;
+    /* 让龟甲图片更淡、更融入暗色背景 */
+    filter:brightness(0.85) contrast(0.95) sepia(0.2);
+    border:1px solid rgba(100,80,60,0.3);
+  }
+  /* 移除CSS绘制的裂纹，使用真实图片 */
+  /* 移除网格和裂纹层，因为使用真实图片 */
+  .shell-grid {
+    display:none;
+  }
+  .shell-cracks {
+    display:none;
+  }
+  .shell-ring {
+    position:absolute;
+    inset:-20px;
+    border-radius:inherit;
+    border:1px dashed rgba(120,96,60,0.6);
+    box-shadow:0 0 18px rgba(150,120,70,0.6);
+    opacity:0.8;
+    animation:ringPulse 6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  #glyph-layer {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .glyph-row {
+    display:flex;
+    gap:18px;
+  }
+  .glyph {
+    position:relative;
+    font-size:64px;
+    letter-spacing:4px;
+    color:transparent;
+    -webkit-text-stroke:1px rgba(200,255,230,0.88);
+    text-shadow:
+      0 0 0 rgba(0,0,0,0),
+      0 0 0 rgba(0,0,0,0);
+    opacity:0;
+    filter:blur(6px);
+    transform:scale(0.86) translateY(10px);
+    animation:carve 1.8s forwards ease-out,
+              flicker 2.4s ease-in-out 0.4s infinite alternate;
+  }
+  .glyph-img {
+    max-width:70%;
+    max-height:70%;
+    width:auto;
+    height:auto;
+    object-fit:contain;
+    /* 让符号更清晰，与暗色背景形成对比 */
+    filter:brightness(1.2) contrast(1.4) drop-shadow(0 0 8px rgba(200,180,140,0.6));
+    animation:glyphCarve 3s forwards ease-out,
+              glyphFadeIn 2.5s ease-in-out 0.5s infinite alternate;
+    position:relative;
+    z-index:10;
+    opacity:0;
+  }
+  .glyph::after {
+    content:attr(data-oracle);
+    position:absolute;
+    inset:0;
+    color:#c8f7c5;
+    -webkit-text-stroke:0;
+    mix-blend-mode:screen;
+    mask-image:linear-gradient(90deg, transparent 0, #fff 22%, #fff 78%, transparent 100%);
+    mask-size:220% 100%;
+    mask-position:0 0;
+    animation:revealStroke 1.8s forwards ease-out;
+  }
+  .glyph-label {
+    position:absolute;
+    left:50%;
+    top:100%;
+    transform:translate(-50%, 14px);
+    font-size:13px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:#7fffe2;
+    opacity:0;
+    animation:labelFade 1.4s forwards ease-out;
+  }
+  #text-panel {
+    margin-top:24px;
+    font-size:16px;
+    line-height:1.6;
+    white-space:pre-line;
+    color:#d4c4a8;
+    text-shadow:0 2px 4px rgba(0,0,0,0.5);
+  }
+  .card {
+    max-width:880px;
+    margin:32px auto 40px;
+    padding:24px;
+    border:1px solid rgba(100,80,60,0.3);
+    border-radius:16px;
+    background:rgba(30,25,20,0.4);
+    box-shadow:0 4px 20px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3) inset;
+    backdrop-filter:blur(2px);
+  }
+  @keyframes ringPulse {
+    0%,100% { opacity:0.2; transform:scale(0.96); }
+    50% { opacity:0.8; transform:scale(1.03); }
+  }
+  @keyframes carve {
+    0% {
+      opacity:0;
+      filter:blur(10px);
+      transform:scale(0.76) translateY(22px);
+      -webkit-text-stroke:1px rgba(20,40,32,0.5);
+    }
+    55% {
+      opacity:1;
+      filter:blur(2px);
+      transform:scale(1.02) translateY(-3px);
+      -webkit-text-stroke:1px rgba(200,255,230,1);
+      text-shadow:
+        0 0 10px rgba(120,255,210,0.8),
+        0 0 32px rgba(120,220,255,0.9);
+    }
+    100% {
+      opacity:0.96;
+      filter:blur(0.5px);
+      transform:scale(0.98) translateY(0);
+      text-shadow:
+        0 0 4px rgba(30,90,80,0.8),
+        0 0 14px rgba(0,0,0,0.9);
+    }
+  }
+  /* 符号刻痕浮现效果（做旧风格） */
+  @keyframes glyphCarve {
+    0% {
+      opacity:0;
+      transform:scale(0.4) translateY(20px);
+      filter:blur(8px) brightness(0.4) contrast(0.6);
+    }
+    30% {
+      opacity:0.4;
+      transform:scale(0.7) translateY(10px);
+      filter:blur(5px) brightness(0.6) contrast(0.8);
+    }
+    60% {
+      opacity:0.7;
+      transform:scale(0.9) translateY(3px);
+      filter:blur(2px) brightness(0.75) contrast(1);
+    }
+    100% {
+      opacity:1;
+      transform:scale(1) translateY(0);
+      filter:blur(0px) brightness(0.75) contrast(1.2);
+    }
+  }
+  /* 符号淡入淡出（模拟古老刻痕） */
+  @keyframes glyphFadeIn {
+    0% {
+      opacity:0.85;
+      filter:brightness(0.7) contrast(1.1);
+    }
+    50% {
+      opacity:0.95;
+      filter:brightness(0.8) contrast(1.2);
+    }
+    100% {
+      opacity:0.9;
+      filter:brightness(0.75) contrast(1.15);
+    }
+  }
+  @keyframes revealStroke {
+    0% { mask-position:-120% 0; opacity:0; }
+    20% { opacity:1; }
+    100% { mask-position:0 0; opacity:1; }
+  }
+  @keyframes flicker {
+    0% { text-shadow:0 0 4px rgba(0,0,0,0.8); }
+    40% { text-shadow:0 0 10px rgba(60,200,160,0.35); }
+    90% { text-shadow:0 0 18px rgba(120,255,210,0.6); }
+    100% { text-shadow:0 0 7px rgba(30,120,90,0.7); }
+  }
+  @keyframes labelFade {
+    0% { opacity:0; transform:translate(-50%, 16px); }
+    100% { opacity:0.9; transform:translate(-50%, 8px); }
+  }
+  /* 验辞页面：复古龟甲风格 */
+  .interpret-shell {
+    position:relative;
+    max-width:1000px;
+    margin:32px auto;
+    padding:48px 32px 56px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(80,60,40,0.6), transparent 70%),
+      radial-gradient(circle at 30% 100%, rgba(60,45,30,0.7), transparent 60%),
+      #1a1510;
+    border-radius:24px;
+    box-shadow:
+      0 0 60px rgba(0,0,0,0.8),
+      0 0 120px rgba(120,60,20,0.2) inset,
+      0 4px 20px rgba(0,0,0,0.5);
+    border:2px solid rgba(100,70,40,0.6);
+    opacity:1;
+    transform:scale(1);
+    transition:opacity 2s ease-out, transform 2s ease-out, filter 2s ease-out;
+    overflow:hidden;
+  }
+  .interpret-shell.closing {
+    opacity:0;
+    transform:scale(0.92);
+    filter:blur(4px);
+  }
+  /* 燃烧特效 */
+  .burning-overlay {
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    pointer-events:none;
+    z-index:100;
+    opacity:0;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,100,0,0.6) 0%, transparent 70%),
+      radial-gradient(circle at 30% 70%, rgba(255,150,50,0.4) 0%, transparent 60%),
+      radial-gradient(circle at 70% 30%, rgba(200,80,0,0.5) 0%, transparent 65%);
+    animation:burn 2s ease-out forwards;
+  }
+  .burning-flames {
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:40%;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(255,120,40,0.3) 30%, rgba(255,80,0,0.6) 70%, rgba(255,40,0,0.4) 100%);
+    border-radius:0 0 24px 24px;
+    animation:flameFlicker 0.3s ease-in-out infinite alternate;
+  }
+  @keyframes burn {
+    0% {
+      opacity:0;
+      filter:brightness(1);
+    }
+    30% {
+      opacity:0.8;
+      filter:brightness(1.5);
+    }
+    70% {
+      opacity:0.9;
+      filter:brightness(2);
+    }
+    100% {
+      opacity:0.7;
+      filter:brightness(1.2);
+    }
+  }
+  @keyframes flameFlicker {
+    0% {
+      transform:translateY(0) scaleY(1);
+      opacity:0.7;
+    }
+    100% {
+      transform:translateY(-10px) scaleY(1.1);
+      opacity:1;
+    }
+  }
+  .interpret-shell-bg {
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .interpret-shell-cracks {
+    position:absolute;
+    inset:12% 15% 18% 15%;
+    border-radius:20px;
+    background:
+      radial-gradient(circle at 40% 50%, rgba(180,150,110,0.15) 0, transparent 60%);
+    box-shadow:
+      0 0 0 1px rgba(100,70,40,0.4) inset,
+      0 0 30px rgba(0,0,0,0.3) inset;
+  }
+  .interpret-shell-grid {
+    position:absolute;
+    inset:16% 18% 20% 18%;
+    background-image:
+      linear-gradient(135deg, rgba(120,96,72,0.25) 1px, transparent 1px),
+      linear-gradient(-135deg, rgba(140,108,72,0.2) 1px, transparent 1px);
+    background-size:28px 28px;
+    mix-blend-mode:multiply;
+    opacity:0.15;
+  }
+  .interpret-symbols-row {
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:40px;
+    margin:32px 0 48px;
+    z-index:2;
+  }
+  .interpret-symbol-item {
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    min-width:120px;
+  }
+  .interpret-symbol-img {
+    width:100px;
+    height:100px;
+    object-fit:contain;
+    filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+    opacity:0;
+    animation:fadeInUp 0.8s forwards ease-out;
+  }
+  .interpret-symbol-label {
+    font-size:16px;
+    font-weight:500;
+    color:#b4a494;
+    letter-spacing:2px;
+    opacity:0;
+    animation:fadeInUp 0.8s 0.3s forwards ease-out;
+    text-shadow:0 2px 4px rgba(0,0,0,0.5);
+  }
+  .interpret-symbol-name {
+    font-size:18px;
+    color:#d4c4a8;
+    font-weight:600;
+    opacity:0;
+    animation:fadeInUp 0.8s 0.5s forwards ease-out;
+    text-shadow:0 2px 4px rgba(0,0,0,0.5);
+  }
+  .interpret-content {
+    position:relative;
+    z-index:2;
+    background:rgba(40,35,30,0.7);
+    padding:32px 40px;
+    border-radius:16px;
+    border:1px solid rgba(100,80,60,0.4);
+    box-shadow:0 4px 20px rgba(0,0,0,0.5) inset, 0 0 30px rgba(0,0,0,0.3);
+    opacity:0;
+    animation:fadeIn 1s 0.8s forwards ease-out;
+    backdrop-filter:blur(2px);
+  }
+  .interpret-question {
+    font-size:16px;
+    color:#d4c4a8;
+    margin-bottom:24px;
+    padding-bottom:16px;
+    border-bottom:1px solid rgba(100,80,60,0.4);
+    font-weight:500;
+    text-shadow:0 2px 4px rgba(0,0,0,0.5);
+  }
+  .interpret-text {
+    font-size:15px;
+    line-height:2;
+    color:#c4b4a4;
+    white-space:pre-wrap;
+    text-shadow:0 2px 4px rgba(0,0,0,0.5);
+  }
+  .interpret-section {
+    margin-bottom:28px;
+  }
+  .interpret-section-title {
+    font-size:18px;
+    font-weight:600;
+    color:#d4c4a8;
+    margin-bottom:12px;
+    letter-spacing:3px;
+  }
+  .interpret-section-item {
+    margin-bottom:16px;
+    padding-left:20px;
+  }
+  .interpret-section-item-name {
+    font-size:16px;
+    color:#c4a880;
+    font-weight:500;
+    margin-bottom:4px;
+  }
+  .interpret-section-item-desc {
+    font-size:14px;
+    color:#b8a890;
+    line-height:1.8;
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity:0;
+      transform:translateY(20px);
+    }
+    to {
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
+  @keyframes fadeIn {
+    from { opacity:0; }
+    to { opacity:1; }
+  }
+</style>
+</head>
+<body>
+  <h1>甲影</h1>
+
+  <!-- 页面一：立问页 -->
+  <div id="page-ask">
+    <div id="question-box" style="margin-top:8px;">
+      <input id="question-input"
+             type="text"
+             placeholder="在此输入你此刻真正想问的一句问话……"
+             style="width:60%;max-width:520px;padding:8px 10px;border-radius:999px;border:1px solid #6a5a4a;background:rgba(40,35,30,0.6);color:#d4c4a8;font-size:14px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.3) inset;"
+             oninput="validateInput(this)">
+      <button id="question-lock-btn" onclick="lockQuestion()" style="margin-left:8px;">立问</button>
+    </div>
+    <div id="daily-info" style="margin-top:10px;font-size:13px;opacity:0.8;color:#b4a494;"></div>
+  </div>
+
+  <!-- 页面二：占卜页 -->
+  <div id="page-cast" style="display:none;">
+    <p style="margin-top:18px;color:#b4a494;">一次占问只进行一次抽取：</p>
+    <button onclick="drawForQuestion()">随问而占</button>
+    <div id="cast-question-display" style="margin-top:8px;font-size:13px;opacity:0.7;color:#b4a494;"></div>
+    <div id="scene" class="card">
+      <div class="shell">
+        <div class="shell-grid"></div>
+        <div class="shell-cracks"></div>
+        <div class="shell-ring"></div>
+        <div id="glyph-layer"></div>
+      </div>
+      <div id="text-panel"></div>
+    </div>
+  </div>
+
+  <!-- 页面三：解释页（复古龟甲风格） -->
+  <div id="page-interpret" style="display:none;">
+    <div id="interpret-shell" class="interpret-shell">
+      <div class="interpret-shell-bg">
+        <div class="interpret-shell-cracks"></div>
+        <div class="interpret-shell-grid"></div>
+      </div>
+      <div id="interpret-symbols-row" class="interpret-symbols-row">
+        <!-- 三个符号会通过 JS 动态插入 -->
+      </div>
+      <div id="interpret-content" class="interpret-content">
+        <div id="interpret-question" class="interpret-question"></div>
+        <div id="interpret-text" class="interpret-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 进入阶段：覆盖层（只在占卜页使用） -->
+  <div id="enter-layer" style="position:fixed;inset:0;background:rgba(26,22,18,0.95);display:none;opacity:0;align-items:center;justify-content:center;z-index:20;">
+    <div style="text-align:center;color:#d4c4a8;">
+      <div style="font-size:20px;letter-spacing:4px;margin-bottom:24px;text-shadow:0 2px 8px rgba(0,0,0,0.5);">甲未开，问未立</div>
+      <div style="font-size:14px;opacity:0.8;margin-bottom:12px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">按住下方印记 2 秒，缓慢开启一次占问</div>
+      <button id="enter-hold"
+              style="margin-top:4px;padding:18px 40px;border-radius:999px;border:1px solid #6a5a4a;background:rgba(60,50,40,0.6);color:#d4c4a8;font-size:14px;letter-spacing:3px;box-shadow:0 2px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);">
+        长按以入龟甲
+      </button>
+      <div id="enter-progress" style="height:3px;width:160px;margin:14px auto 0;background:rgba(60,50,40,0.5);border-radius:999px;overflow:hidden;">
+        <div id="enter-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#b4a494,#d4c4a8);"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// 商代卜辞核心符号，分为三类：象、势、兆
+const symbols = {
+  // 象：人心口目又止日月水火土室
+  象: [
+    { name:"人", shape:"侧立人", meaning:"自我 / 关系 / 群体" },
+    { name:"心", shape:"心形", meaning:"情绪 / 意志 / 动机" },
+    { name:"口", shape:"开口", meaning:"语言 / 承诺 / 入口" },
+    { name:"目", shape:"眼", meaning:"认知 / 观察 / 真相" },
+    { name:"又", shape:"右手", meaning:"行动 / 掌控 / 能力" },
+    { name:"止", shape:"足", meaning:"进展 / 路径" },
+    { name:"日", shape:"圆中一点", meaning:"时间 / 显现" },
+    { name:"月", shape:"弯月", meaning:"潜意识 / 周期" },
+    { name:"水", shape:"曲流", meaning:"流动 / 情绪 / 危险" },
+    { name:"火", shape:"火焰", meaning:"能量 / 破坏 / 转化" },
+    { name:"土", shape:"土块", meaning:"根基 / 现实 / 承载" },
+    { name:"室", shape:"房屋", meaning:"内在 / 安全 / 私域" }
+  ],
+  // 势：往令求取合分受守用作
+  势: [
+    { name:"往", shape:"前行", meaning:"方向、趋向" },
+    { name:"令", shape:"命令", meaning:"发令、驱动" },
+    { name:"求", shape:"求取", meaning:"欲望、追逐" },
+    { name:"取", shape:"取", meaning:"主动夺取" },
+    { name:"合", shape:"合", meaning:"联结、妥协" },
+    { name:"分", shape:"分", meaning:"切割、决断" },
+    { name:"受", shape:"受", meaning:"承受、接受、被动获得" },
+    { name:"守", shape:"守护", meaning:"防御、维持" },
+    { name:"用", shape:"用", meaning:"运用、施行" },
+    { name:"作", shape:"作", meaning:"主动作为" }
+  ],
+  // 兆：吉安危明多少
+  兆: [
+    { name:"吉", shape:"吉", meaning:"顺 / 可行" },
+    { name:"安", shape:"安", meaning:"稳定 / 平衡" },
+    { name:"危", shape:"危", meaning:"不稳 / 悬" },
+    { name:"明", shape:"明", meaning:"清晰 / 可见" },
+    { name:"多", shape:"多", meaning:"复杂 / 过量" },
+    { name:"少", shape:"少", meaning:"稀缺 / 简化" }
+  ]
+};
+
+// 对应的小图路径（相对 oracle.html 所在位置）
+const oracleImages = {
+  // 象类
+  "人": "甲骨文/人.png",
+  "心": "甲骨文/心.png",
+  "口": "甲骨文/口.png",
+  "目": "甲骨文/目.png",
+  "又": "甲骨文/又.png",
+  "止": "甲骨文/止.png",
+  "日": "甲骨文/日.png",
+  "月": "甲骨文/月.png",
+  "水": "甲骨文/水.png",
+  "火": "甲骨文/火.png",
+  "土": "甲骨文/土.png",
+  "室": "甲骨文/室.png",
+  // 势类（如果有对应的图片文件）
+  "往": "甲骨文/往.png",
+  "令": "甲骨文/令.png",
+  "求": "甲骨文/求.png",
+  "取": "甲骨文/取.png",
+  "合": "甲骨文/合.png",
+  "分": "甲骨文/分.png",
+  "受": "甲骨文/受.png",
+  "守": "甲骨文/守.png",
+  "用": "甲骨文/用.png",
+  "作": "甲骨文/作.png",
+  // 兆类
+  "吉": "甲骨文/吉.png",
+  "安": "甲骨文/安.png",
+  "危": "甲骨文/危.png",
+  "明": "甲骨文/明.png",
+  "多": "甲骨文/多.png",
+  "少": "甲骨文/少.png"
+};
+
+// 背景音乐（本地文件，请将音乐文件放到 audio 文件夹，命名为 bgm.mp3）
+const bgm = new Audio("audio/bgm.mp3.mp3");
+bgm.loop = true;
+bgm.volume = 0.45;
+let bgmStarted = false;
+
+
+// 从数组中随机抽取一个
+function getRandomOne(arr) {
+  if (!arr || arr.length === 0) return null;
+  const idx = Math.floor(Math.random() * arr.length);
+  return arr[idx];
+}
+
+// 抽取三类符号各一个：象、势、兆（固定顺序）
+function drawThreeCategories() {
+  const xiang = getRandomOne(symbols.象);
+  const shi = getRandomOne(symbols.势);
+  const zhao = getRandomOne(symbols.兆);
+  return [
+    { ...xiang, category: "象" },
+    { ...shi, category: "势" },
+    { ...zhao, category: "兆" }
+  ];
+}
+
+// 生成极简提示词（取原始多义里的第一个片段）
+function getHint(symbol) {
+  if (!symbol || !symbol.meaning) return "";
+  const first = symbol.meaning.split("/")[0];
+  return first.trim();
+}
+
+// 启动背景音乐（尝试自动播放，如果被浏览器阻止则静默失败）
+function startBgm() {
+  if (bgmStarted) return; // 已经启动过就不再重复
+  
+  // 尝试播放
+  const playPromise = bgm.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        // 播放成功
+        bgmStarted = true;
+        console.log("BGM开始播放");
+      })
+      .catch((err) => {
+        // 播放失败（通常是浏览器阻止自动播放）
+        console.log("BGM自动播放被阻止，将在用户交互时重试");
+        bgmStarted = false; // 标记为未启动，允许重试
+      });
+  }
+}
+
+// 阶段控制与结果暂态
+let isRevealing = false;
+let activeTimers = [];
+const HINT_DELAY_MS = 6000;      // 符号出现后到提示词出现的延迟（延长到6秒）
+const BETWEEN_SYMBOL_MS = 2000;  // 符号之间的间隔（延长到2秒）
+let bottomLineShown = false;     // 标记"你看到的"是否已显示
+const INTERPRET_AUTO_CLOSE_MS = 20000; // 验辞页面自动关闭时间（20秒）
+let currentQuestion = "";
+let lastDrawSymbols = [];
+let interpretCloseTimer = null;
+let dailyCount = 0;
+const DAILY_LIMIT = 3; // 每日限制3次
+const STORAGE_KEY_DATE = "jiaying_date";
+const STORAGE_KEY_COUNT = "jiaying_count";
+
+function schedule(fn, delay) {
+  const id = setTimeout(fn, delay);
+  activeTimers.push(id);
+}
+
+function clearAllTimers() {
+  activeTimers.forEach(clearTimeout);
+  activeTimers = [];
+}
+
+function getTodayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadDailyState() {
+  const today = getTodayStr();
+  const storedDate = localStorage.getItem(STORAGE_KEY_DATE);
+  if (storedDate !== today) {
+    // 新的一天，重置计数
+    dailyCount = 0;
+    localStorage.setItem(STORAGE_KEY_DATE, today);
+    localStorage.setItem(STORAGE_KEY_COUNT, "0");
+  } else {
+    const c = parseInt(localStorage.getItem(STORAGE_KEY_COUNT) || "0", 10);
+    dailyCount = isNaN(c) ? 0 : c;
+  }
+  updateDailyInfo();
+}
+
+function updateDailyInfo() {
+  const info = document.getElementById('daily-info');
+  if (!info) return;
+  if (dailyCount >= DAILY_LIMIT) {
+    info.textContent = `今日占问：${dailyCount}/${DAILY_LIMIT} · 今日已问足，请改日再来。`;
+  } else {
+    info.textContent = `今日占问：${dailyCount}/${DAILY_LIMIT}`;
+  }
+}
+
+function increaseDailyCountOnce() {
+  if (dailyCount >= DAILY_LIMIT) return;
+  dailyCount += 1;
+  localStorage.setItem(STORAGE_KEY_COUNT, String(dailyCount));
+  localStorage.setItem(STORAGE_KEY_DATE, getTodayStr());
+  updateDailyInfo();
+}
+
+// 锁定用户问话
+function lockQuestion() {
+  // 用户第一次交互时，确保BGM开始播放（如果之前被浏览器阻止）
+  startBgm();
+  
+  const input = document.getElementById('question-input');
+  const btn = document.getElementById('question-lock-btn');
+  if (!input || !btn) return;
+  // 检查每日限制
+  if (dailyCount >= DAILY_LIMIT) {
+    alert("今日已问足，请改日再来。");
+    return;
+  }
+  const value = input.value.trim();
+  if (!value) {
+    alert("请先在上方输入你此刻真正想问的一句话。");
+    input.focus();
+    return;
+  }
+  currentQuestion = value;
+  input.readOnly = true;
+  input.style.opacity = "0.9";
+  btn.disabled = true;
+  btn.textContent = "问已立";
+
+  // 进入占卜页，并展示当前问话
+  const castQ = document.getElementById('cast-question-display');
+  if (castQ) castQ.textContent = `所问：${currentQuestion}`;
+  showPage('cast');
+
+  // 显示进入层，要求长按入龟甲
+  const layer = document.getElementById('enter-layer');
+  if (layer) {
+    layer.style.display = 'flex';
+    // 轻微延迟以保证 transition 生效
+    requestAnimationFrame(() => {
+      layer.style.opacity = '1';
+    });
+  }
+}
+
+// 进入阶段：长按按钮 2 秒以“入龟甲”
+let enterTimer = null;
+let enterProgress = 0;
+const ENTER_HOLD_MS = 2000;
+
+function setupEnterStage() {
+  const btn = document.getElementById('enter-hold');
+  const bar = document.getElementById('enter-bar');
+  const layer = document.getElementById('enter-layer');
+  if (!btn || !bar || !layer) return;
+
+  const startHold = () => {
+    enterProgress = 0;
+    bar.style.width = "0%";
+    const start = Date.now();
+    enterTimer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      enterProgress = Math.min(1, elapsed / ENTER_HOLD_MS);
+      bar.style.width = (enterProgress * 100) + "%";
+      if (enterProgress >= 1) {
+        clearInterval(enterTimer);
+        enterTimer = null;
+        // 确保背景音乐已启动（如果之前被浏览器阻止，此时用户交互后应该能播放）
+        startBgm();
+        // 淡出进入层
+        layer.style.transition = "opacity 800ms ease-out";
+        layer.style.opacity = "0";
+        setTimeout(() => {
+          layer.style.display = "none";
+        }, 820);
+      }
+    }, 40);
+  };
+
+  const cancelHold = () => {
+    if (enterTimer) {
+      clearInterval(enterTimer);
+      enterTimer = null;
+    }
+    enterProgress = 0;
+    bar.style.width = "0%";
+  };
+
+  btn.addEventListener('mousedown', startHold);
+  btn.addEventListener('touchstart', startHold);
+  window.addEventListener('mouseup', cancelHold);
+  window.addEventListener('mouseleave', cancelHold);
+  window.addEventListener('touchend', cancelHold);
+}
+
+// 输入验证：只允许中文
+function validateInput(input) {
+  // 移除所有非中文字符（包括中文标点）
+  const value = input.value;
+  // 只允许：中文字符、中文标点、空格
+  const validPattern = /[^\u4e00-\u9fa5\s，。！？、；：""''（）【】《》]/g;
+  const cleaned = value.replace(validPattern, '');
+  if (cleaned !== value) {
+    input.value = cleaned;
+  }
+}
+
+function showPage(name) {
+  const ask = document.getElementById('page-ask');
+  const cast = document.getElementById('page-cast');
+  const interpret = document.getElementById('page-interpret');
+  if (!ask || !cast || !interpret) return;
+  ask.style.display = name === 'ask' ? 'block' : 'none';
+  cast.style.display = name === 'cast' ? 'block' : 'none';
+  interpret.style.display = name === 'interpret' ? 'block' : 'none';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setupEnterStage();
+  loadDailyState();
+  showPage('ask');
+  // 页面加载时尝试自动播放BGM（如果被浏览器阻止，会在用户第一次交互时重试）
+  startBgm();
+});
+
+// 把抽中的符号渲染到龟甲上，并带有“刻痕浮现”动画
+function renderGlyphs(drawSymbols) {
+  const layer = document.getElementById('glyph-layer');
+  layer.innerHTML = '';
+
+  const row = document.createElement('div');
+  row.className = 'glyph-row';
+
+  drawSymbols.forEach((s, index) => {
+    const g = document.createElement('div');
+    g.className = 'glyph';
+
+    // 优先使用对应的小图；没有图片时退回文字刻痕
+    const imgPath = oracleImages[s.name];
+    if (imgPath) {
+      // 有甲骨文小图：在龟甲上放一张 png
+      const img = document.createElement('img');
+      img.src = imgPath;
+      img.alt = s.name;
+      img.className = 'glyph-img';
+      g.appendChild(img);
+      g.dataset.oracle = ""; // 不再显示简体字
+    } else {
+      // 暂时没有图（如 门、神），用简体字刻痕顶上
+      g.textContent = s.name;
+      g.dataset.oracle = s.name;
+    }
+
+    const label = document.createElement('div');
+    label.className = 'glyph-label';
+    // 龟甲内部只浮现甲骨文，这里不再写简体字，只做轻微的占位发光
+    label.textContent = "";
+
+    const delay = index * 0.35;
+    g.style.animationDelay = `${delay}s`;
+    g.style.setProperty('--carve-delay', `${delay}s`);
+
+    label.style.animationDelay = `${delay + 0.7}s`;
+
+    g.appendChild(label);
+    row.appendChild(g);
+  });
+
+  layer.appendChild(row);
+}
+
+// 依次显现多个符号（阶段 3：Reveal）
+function revealSequence(drawSymbols) {
+  const textPanel = document.getElementById('text-panel');
+  const bottomLine = "你看到的，是你正在经历的。";
+  clearAllTimers();
+  bottomLineShown = false; // 重置标记
+
+  isRevealing = true;
+  textPanel.innerText = "";
+
+  drawSymbols.forEach((s, index) => {
+    const startAt = index * (HINT_DELAY_MS + BETWEEN_SYMBOL_MS);
+
+    // 先只显现甲骨文字形
+    schedule(() => {
+      renderGlyphs([s]);
+      textPanel.innerText = ""; // 刚出现时不写任何解释
+    }, startAt);
+
+    // 若干秒后再给出极简提示词（不包含固定句）
+    schedule(() => {
+      const hint = getHint(s);
+      const categoryLabel = s.category ? `【${s.category}】` : "";
+      const hintLine = hint ? `${categoryLabel}${hint}` : categoryLabel;
+      
+      // 只在第一个符号显示提示时，短暂显示一次"你看到的"这句话
+      if (!bottomLineShown && index === 0) {
+        textPanel.innerText = [hintLine, bottomLine].filter(Boolean).join("\n");
+        bottomLineShown = true;
+        // 2秒后移除这句话
+        schedule(() => {
+          if (textPanel.innerText.includes(bottomLine)) {
+            textPanel.innerText = hintLine;
+          }
+        }, 2000);
+      } else {
+        textPanel.innerText = hintLine;
+      }
+    }, startAt + HINT_DELAY_MS);
+  });
+
+  // 全部显现完后，进入"验辞阶段"：展示每个字的意思 + 简要解读
+  const totalDuration = drawSymbols.length * (HINT_DELAY_MS + BETWEEN_SYMBOL_MS);
+  schedule(() => {
+    isRevealing = false;
+    showInterpretation(drawSymbols);
+  }, totalDuration);
+}
+
+// 验辞句式模板（随机选择）
+const oracleSentenceTemplates = [
+  (xiang, shi, zhao) => {
+    return `今有「${xiang.name}」显，其行在「${shi.name}」，终归于「${zhao.name}」。`;
+  },
+  (xiang, shi, zhao) => {
+    return `所见为「${xiang.name}」，动而成「${shi.name}」，其应在「${zhao.name}」。`;
+  },
+  (xiang, shi, zhao) => {
+    return `从「${xiang.name}」观之，其势偏向「${shi.name}」，结果或在「${zhao.name}」。`;
+  },
+  (xiang, shi, zhao) => {
+    return `「${xiang.name}」提示现状，「${shi.name}」揭示变化，「${zhao.name}」为其去处。`;
+  }
+];
+
+// 根据问话与符号做一段简易"AI 解读"（规则文本版，作为AI失败时的后备）
+function buildOracleSentence(question, drawSymbols) {
+  const xiang = drawSymbols[0];
+  const shi = drawSymbols[1];
+  const zhao = drawSymbols[2];
+  
+  // 随机选择一个句式模板
+  const template = oracleSentenceTemplates[Math.floor(Math.random() * oracleSentenceTemplates.length)];
+  return template(xiang, shi, zhao);
+}
+
+
+// 验辞阶段：给出每个字的说明 + 一段整体验辞（复古龟甲风格布局）
+function showInterpretation(drawSymbols) {
+  const qNode = document.getElementById('interpret-question');
+  const textPanel = document.getElementById('interpret-text');
+  const symbolsRow = document.getElementById('interpret-symbols-row');
+  if (!textPanel || !symbolsRow) return;
+
+  lastDrawSymbols = drawSymbols;
+
+  // 清空并重新渲染符号行
+  symbolsRow.innerHTML = '';
+  
+  // 固定顺序：象、势、兆
+  const xiang = drawSymbols[0];
+  const shi = drawSymbols[1];
+  const zhao = drawSymbols[2];
+  
+  const categories = [
+    { symbol: xiang, label: "象", delay: 0 },
+    { symbol: shi, label: "势", delay: 0.2 },
+    { symbol: zhao, label: "兆", delay: 0.4 }
+  ];
+  
+  categories.forEach((cat, idx) => {
+    const item = document.createElement('div');
+    item.className = 'interpret-symbol-item';
+    item.style.animationDelay = `${cat.delay}s`;
+    
+    const img = document.createElement('img');
+    const imgPath = oracleImages[cat.symbol.name];
+    if (imgPath) {
+      img.src = imgPath;
+      img.className = 'interpret-symbol-img';
+      img.alt = cat.symbol.name;
+    } else {
+      // 如果没有图片，用文字代替
+      const textDiv = document.createElement('div');
+      textDiv.className = 'interpret-symbol-img';
+      textDiv.style.fontSize = '60px';
+      textDiv.style.color = '#3b3023';
+      textDiv.textContent = cat.symbol.name;
+      item.appendChild(textDiv);
+    }
+    if (img.src) item.appendChild(img);
+    
+    const label = document.createElement('div');
+    label.className = 'interpret-symbol-label';
+    label.textContent = `【${cat.label}】`;
+    
+    const name = document.createElement('div');
+    name.className = 'interpret-symbol-name';
+    name.textContent = cat.symbol.name;
+    
+    item.appendChild(label);
+    item.appendChild(name);
+    symbolsRow.appendChild(item);
+  });
+
+  // 构建简洁的解释文本
+  let html = '';
+  
+  if (currentQuestion.trim()) {
+    html += `<div class="interpret-question">${currentQuestion.trim()}</div>`;
+  }
+  
+  // 简洁的三类符号展示
+  html += '<div style="display:flex;justify-content:center;gap:32px;margin:24px 0 32px;flex-wrap:wrap;">';
+  html += `<div style="text-align:center;"><div style="font-size:14px;color:#c4a880;margin-bottom:4px;">【象】</div><div style="font-size:18px;color:#d4c4a8;font-weight:600;">${xiang.name}</div><div style="font-size:12px;color:#b8a890;margin-top:4px;">${xiang.meaning}</div></div>`;
+  html += `<div style="text-align:center;"><div style="font-size:14px;color:#c4a880;margin-bottom:4px;">【势】</div><div style="font-size:18px;color:#d4c4a8;font-weight:600;">${shi.name}</div><div style="font-size:12px;color:#b8a890;margin-top:4px;">${shi.meaning}</div></div>`;
+  html += `<div style="text-align:center;"><div style="font-size:14px;color:#c4a880;margin-bottom:4px;">【兆】</div><div style="font-size:18px;color:#d4c4a8;font-weight:600;">${zhao.name}</div><div style="font-size:12px;color:#b8a890;margin-top:4px;">${zhao.meaning}</div></div>`;
+  html += '</div>';
+  
+  // 整体解释
+  const interpretText = buildOracleSentence(currentQuestion, drawSymbols);
+  html += `<div style="margin-top:32px;padding:24px;background:rgba(20,15,10,0.6);border-radius:12px;border:1px solid rgba(100,70,40,0.3);"><div style="color:#b8a890;font-size:14px;line-height:1.8;text-align:left;">${interpretText}</div></div>`;
+  
+  textPanel.innerHTML = html;
+  
+  showPage('interpret');
+  
+  // 清除之前的合甲定时器
+  if (interpretCloseTimer) {
+    clearTimeout(interpretCloseTimer);
+    interpretCloseTimer = null;
+  }
+  
+  // 设置自动合甲定时器
+  interpretCloseTimer = setTimeout(() => {
+    closeInterpretAndReturn();
+  }, INTERPRET_AUTO_CLOSE_MS);
+  
+  // BGM逐渐淡出（验辞显示后开始）
+  fadeOutBgm(INTERPRET_AUTO_CLOSE_MS + 2000); // 在合甲前2秒开始淡出
+}
+
+// BGM淡出函数
+function fadeOutBgm(duration = 3000) {
+  if (!bgmStarted || bgm.paused) return;
+  
+  const startVolume = bgm.volume;
+  const fadeStep = startVolume / (duration / 100); // 每100ms降低一次
+  let currentVolume = startVolume;
+  
+  const fadeInterval = setInterval(() => {
+    currentVolume = Math.max(0, currentVolume - fadeStep);
+    bgm.volume = currentVolume;
+    
+    if (currentVolume <= 0) {
+      clearInterval(fadeInterval);
+      bgm.pause();
+      bgm.volume = 0.45; // 恢复原始音量，为下次播放准备
+      bgmStarted = false;
+    }
+  }, 100);
+}
+
+// 合甲流程：关闭验辞页面，返回立问页（带燃烧特效）
+function closeInterpretAndReturn() {
+  const shell = document.getElementById('interpret-shell');
+  if (shell) {
+    // 创建燃烧覆盖层
+    const burningOverlay = document.createElement('div');
+    burningOverlay.className = 'burning-overlay';
+    
+    const flames = document.createElement('div');
+    flames.className = 'burning-flames';
+    burningOverlay.appendChild(flames);
+    
+    shell.appendChild(burningOverlay);
+    
+    // 添加关闭动画类（淡出+模糊）
+    shell.classList.add('closing');
+    
+    // 等待动画完成后，重置并返回立问页
+    setTimeout(() => {
+      // 移除燃烧特效
+      if (burningOverlay.parentNode) {
+        burningOverlay.parentNode.removeChild(burningOverlay);
+      }
+      // 清除定时器
+      if (interpretCloseTimer) {
+        clearTimeout(interpretCloseTimer);
+        interpretCloseTimer = null;
+      }
+      
+      // 重置状态
+      currentQuestion = "";
+      lastDrawSymbols = [];
+      const input = document.getElementById('question-input');
+      const btn = document.getElementById('question-lock-btn');
+      if (input) {
+        input.value = "";
+        input.readOnly = false;
+        input.style.opacity = "1";
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "立问";
+      }
+      
+      // 移除关闭动画类，准备下次使用
+      shell.classList.remove('closing');
+      
+      // 返回立问页
+      showPage('ask');
+    }, 1500); // 等待淡出动画完成
+  } else {
+    // 如果没有找到shell元素，直接返回立问页
+    showPage('ask');
+  }
+}
+
+
+// 按当前问话触发一次占卜（阶段 2：Draw -> 阶段 3：Reveal）
+// 固定抽取：象 -> 势 -> 兆（三类各一个）
+function drawForQuestion() {
+  if (isRevealing) return; // 正在显现时，忽略新的请求
+  if (!currentQuestion.trim()) {
+    alert("请先在上方输入你的问题，并点击「立问」。");
+    return;
+  }
+  // 检查每日限制
+  if (dailyCount >= DAILY_LIMIT) {
+    alert("今日占问次数已尽，请改日再来。");
+    return;
+  }
+  increaseDailyCountOnce();
+  // 固定抽取三类各一个，按顺序：象、势、兆
+  const drawSymbols = drawThreeCategories();
+  revealSequence(drawSymbols);
+}
+</script>
+</body>
+</html>
