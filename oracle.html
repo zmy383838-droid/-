@@ -47,7 +47,7 @@
     max-width:90vw;
     height:460px;
     max-height:70vh;
-    background-image: url('images/shell-bg.png'); /* 使用真实龟甲图片 */
+    background-image: url('./images/shell-bg.png'); /* 使用真实龟甲图片 */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -610,40 +610,40 @@ const symbols = {
 // 对应的小图路径（相对 oracle.html 所在位置）
 const oracleImages = {
   // 象类
-  "人": "甲骨文/人.png",
-  "心": "甲骨文/心.png",
-  "口": "甲骨文/口.png",
-  "目": "甲骨文/目.png",
-  "又": "甲骨文/又.png",
-  "止": "甲骨文/止.png",
-  "日": "甲骨文/日.png",
-  "月": "甲骨文/月.png",
-  "水": "甲骨文/水.png",
-  "火": "甲骨文/火.png",
-  "土": "甲骨文/土.png",
-  "室": "甲骨文/室.png",
+  "人": "./甲骨文/人.png",
+  "心": "./甲骨文/心.png",
+  "口": "./甲骨文/口.png",
+  "目": "./甲骨文/目.png",
+  "又": "./甲骨文/又.png",
+  "止": "./甲骨文/止.png",
+  "日": "./甲骨文/日.png",
+  "月": "./甲骨文/月.png",
+  "水": "./甲骨文/水.png",
+  "火": "./甲骨文/火.png",
+  "土": "./甲骨文/土.png",
+  "室": "./甲骨文/室.png",
   // 势类（如果有对应的图片文件）
-  "往": "甲骨文/往.png",
-  "令": "甲骨文/令.png",
-  "求": "甲骨文/求.png",
-  "取": "甲骨文/取.png",
-  "合": "甲骨文/合.png",
-  "分": "甲骨文/分.png",
-  "受": "甲骨文/受.png",
-  "守": "甲骨文/守.png",
-  "用": "甲骨文/用.png",
-  "作": "甲骨文/作.png",
+  "往": "./甲骨文/往.png",
+  "令": "./甲骨文/令.png",
+  "求": "./甲骨文/求.png",
+  "取": "./甲骨文/取.png",
+  "合": "./甲骨文/合.png",
+  "分": "./甲骨文/分.png",
+  "受": "./甲骨文/受.png",
+  "守": "./甲骨文/守.png",
+  "用": "./甲骨文/用.png",
+  "作": "./甲骨文/作.png",
   // 兆类
-  "吉": "甲骨文/吉.png",
-  "安": "甲骨文/安.png",
-  "危": "甲骨文/危.png",
-  "明": "甲骨文/明.png",
-  "多": "甲骨文/多.png",
-  "少": "甲骨文/少.png"
+  "吉": "./甲骨文/吉.png",
+  "安": "./甲骨文/安.png",
+  "危": "./甲骨文/危.png",
+  "明": "./甲骨文/明.png",
+  "多": "./甲骨文/多.png",
+  "少": "./甲骨文/少.png"
 };
 
 // 背景音乐（本地文件，请将音乐文件放到 audio 文件夹，命名为 bgm.mp3）
-const bgm = new Audio("audio/bgm.mp3.mp3");
+const bgm = new Audio("./audio/bgm.mp3.mp3");
 bgm.loop = true;
 bgm.volume = 0.45;
 let bgmStarted = false;
